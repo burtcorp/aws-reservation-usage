@@ -142,7 +142,7 @@ describe('ReservationManager', function () {
             this.reservations[2].units = 3
           })
 
-          it('returns the convertible reservation', function () {
+          it('consumes from the convertible reservation', function () {
             this.reservationManager.consumeReservedCapacity(this.instance)
             expect(this.findUnusedReservedCapacity(this.reservations[0]).remainingUnits).to.equal(this.reservations[0].units - this.instance.units)
           })
@@ -186,7 +186,7 @@ describe('ReservationManager', function () {
         this.reservations.push({family: 'm7', size: 'medium', offeringClass: 'convertible', az: '*', units: 2})
       })
 
-      it('returns that reservation', function () {
+      it('consumes from that reservation', function () {
         this.reservationManager.consumeReservedCapacity(this.instance)
         expect(this.findUnusedReservedCapacity(this.reservations[1]).remainingUnits).to.equal(this.reservations[1].units - this.instance.units)
       })
@@ -206,7 +206,7 @@ describe('ReservationManager', function () {
             this.reservations[2].units = 3
           })
 
-          it('returns the reservation with the other size', function () {
+          it('consumes from the reservation of the other size', function () {
             this.reservationManager.consumeReservedCapacity(this.instance)
             expect(this.findUnusedReservedCapacity(this.reservations[0]).remainingUnits).to.equal(this.reservations[0].units - this.instance.units)
           })
