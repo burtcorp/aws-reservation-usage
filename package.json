@@ -1,0 +1,32 @@
+{
+  "name": "reservation-usage",
+  "version": "1.0.0",
+  "description": "Reports on your AWS reserved instance usage",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint index.js lib test",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/burtcorp/reservation-usage.git"
+  },
+  "author": "theo@burtcorp.com",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/burtcorp/reservation-usage/issues"
+  },
+  "homepage": "https://github.com/burtcorp/reservation-usage",
+  "dependencies": {
+    "aws-sdk": "^2.172.0"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^1.7.0",
+    "chai": "^4.1.2",
+    "eslint": "^4.13.1",
+    "eslint-plugin-import": "^2.8.0",
+    "mocha": "^4.0.1",
+    "mocha-define": "^0.2.0"
+  },
+  "bundledDependencies": []
+}
