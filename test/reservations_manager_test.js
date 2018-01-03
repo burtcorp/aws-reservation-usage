@@ -163,6 +163,8 @@ describe('ReservationManager', function () {
           expect(this.findUnusedReservedCapacity(this.reservations[1]).remainingUnits).to.equal(this.reservations[1].units)
           expect(this.findUnusedReservedCapacity(this.reservations[2]).remainingUnits).to.equal(this.reservations[2].units)
         })
+
+        it('should consume all remaining units (but what should it return to indicate that the instance is only partially covered?)')
       })
     })
 
