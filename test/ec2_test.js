@@ -1,6 +1,6 @@
 const {describe, it, beforeEach} = require('mocha')
 const {expect} = require('chai')
-const {EC2} = require('../lib/ec2')
+const EC2 = require('../lib/ec2')
 
 describe('EC2', function () {
   beforeEach(function () {
@@ -11,7 +11,7 @@ describe('EC2', function () {
     this.ec2 = new EC2(this.ec2Client)
   })
 
-  describe('#reservations', function () {
+  describe('#loadReservations', function () {
     beforeEach(function () {
       this.reservedInstances = [
         {ReservedInstancesId: 'r1', InstanceType: 'm9.37xlarge', OfferingClass: 'convertible', InstanceCount: 9, Scope: 'Region'},
@@ -28,7 +28,7 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
-      this.result = this.ec2.reservations()
+      this.result = this.ec2.loadReservations()
     })
 
     it('requests all active reservations', function () {
@@ -99,7 +99,7 @@ describe('EC2', function () {
     })
   })
 
-  describe('#instances', function () {
+  describe('#loadInstances', function () {
     beforeEach(function () {
       this.instances = [
         {InstanceType: 'm9.37xlarge', Placement: {AvailabilityZone: 'eu-north-9b'}, Tags: []},
@@ -122,7 +122,7 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
-      this.result = this.ec2.instances()
+      this.result = this.ec2.loadInstances()
     })
 
     it('requests all running instances', function () {

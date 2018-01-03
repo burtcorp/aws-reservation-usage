@@ -1,11 +1,11 @@
 const AWS = require('aws-sdk')
-const {EC2} = require('./lib/ec2')
+const EC2 = require('./lib/ec2')
 const ReservationManager = require('./lib/reservation_manager')
 
 const ec2 = new EC2(new AWS.EC2({region: 'eu-west-1'}))
 
 Promise
-  .all([ec2.reservations(), ec2.instances()])
+  .all([ec2.loadReservations(), ec2.loadInstances()])
   .then(([reservations, instances]) => {
     const reservationMatcher = new ReservationManager(reservations)
     instances.forEach((instance) => {
