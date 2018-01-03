@@ -177,6 +177,17 @@ describe('ReservationManager', function () {
         this.reservationManager.consumeReservedCapacity(this.instance)
         expect(this.findUnusedReservedCapacity(this.reservations[2]).remainingUnits).to.equal(this.reservations[2].units - this.instance.units)
       })
+
+      describe('but also a region-wide standard reservation for the same family but a different size', function () {
+        beforeEach(function () {
+          this.reservations.unshift({family: 'i9', size: 'xlarge', offeringClass: 'standard', az: '*', units: 8})
+        })
+
+        it('consumes from the reservation of the same size', function () {
+          this.reservationManager.consumeReservedCapacity(this.instance)
+          expect(this.findUnusedReservedCapacity(this.reservations[3]).remainingUnits).to.equal(this.reservations[3].units - this.instance.units)
+        })
+      })
     })
 
     describe('when there exists a region-wide standard reservation for the same family but different size', function () {
