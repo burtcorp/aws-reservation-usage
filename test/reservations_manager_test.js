@@ -110,12 +110,12 @@ describe('ReservationManager', function () {
           this.reservations.unshift({family: 'i9', size: 'large', offeringClass: 'standard', az: '*', units: 8})
         })
 
-        it('consumes capacity from the standard reservation', function () {
+        it('consumes capacity from the az-specific reservation', function () {
           this.reservationManager.consumeReservedCapacity(this.instance)
           expect(this.findUnusedReservedCapacity(this.reservations[2]).remainingUnits).to.equal(this.reservations[2].units - this.instance.units)
         })
 
-        describe('and the standard reservation has too few remaining units', function () {
+        describe('and the az-specific reservation has too few remaining units', function () {
           beforeEach(function () {
             this.reservations[2].units = 3
           })
