@@ -48,6 +48,7 @@ describe('ReservationUsage', function () {
     describe('when the event is an API Gateway event', function () {
       beforeEach(function () {
         this.event = {
+          requestContext: {},
           queryStringParameters: {
             region: 'eu-north-9',
           },
