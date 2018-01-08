@@ -8,8 +8,21 @@ describe('EC2', function () {
   })
 
   beforeEach(function () {
-    this.ec2 = new EC2(this.ec2Client)
+    const ctx = this
+    const ec2ClientFactory = function (config) {
+      ctx.ec2Config = config
+      return ctx.ec2Client
+    }
+    this.ec2 = new EC2(ec2ClientFactory, {})
   })
+
+  function ec2ClientSharedExamples() {
+    it('creates an EC2 client for the specified region', function () {
+      return this.result.then(() => {
+        expect(this.ec2Config).to.include({region: 'eu-north-9'})
+      })
+    })
+  }
 
   describe('#loadReservations', function () {
     beforeEach(function () {
@@ -28,8 +41,10 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
-      this.result = this.ec2.loadReservations()
+      this.result = this.ec2.loadReservations('eu-north-9')
     })
+
+    ec2ClientSharedExamples()
 
     it('requests all active reservations', function () {
       return this.result.then(() => {
@@ -122,8 +137,10 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
-      this.result = this.ec2.loadInstances()
+      this.result = this.ec2.loadInstances('eu-north-9')
     })
+
+    ec2ClientSharedExamples()
 
     it('requests all running instances', function () {
       return this.result.then(() => {
