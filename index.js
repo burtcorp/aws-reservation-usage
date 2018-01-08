@@ -8,3 +8,18 @@ exports.handler = (event, context, callback) => {
     .then(response => callback(null, response))
     .catch(callback)
 }
+
+if (process.env.AWS_EXECUTION_ENV == null) {
+  const event = {
+    requestContext: {},
+    queryStringParameters: {region: process.argv[2]},
+    headers: {Accept: 'text/plain'},
+  }
+  exports.handler(event, null, (error, result) => {
+    if (error) {
+      throw error
+    } else {
+      console.log(result.body)
+    }
+  })
+}
