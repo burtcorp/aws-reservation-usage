@@ -51,6 +51,7 @@ describe('ReservationUsage', function () {
           queryStringParameters: {
             region: 'eu-north-9',
           },
+          headers: {},
         }
       })
 
@@ -86,6 +87,20 @@ describe('ReservationUsage', function () {
           return this.reservationUsage.processEvent(this.event).then(() => {
             expect(this.ec2.requestedReservationRegion).to.equal('eu-north-3')
             expect(this.ec2.requestedInstancesRegion).to.equal('eu-north-3')
+          })
+        })
+      })
+
+      describe('whent he "Accept" header contains "application/json"', function () {
+        beforeEach(function () {
+          this.event.headers = {Accept: 'text/plain, application/json, */*'}
+        })
+
+        it('returns a JSON string as the body and sets the content type to JSON', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.statusCode).to.equal(200)
+            expect(response.body).to.match(/^\[\{"family/)
+            expect(response.headers['Content-Type']).to.equal('application/json')
           })
         })
       })
