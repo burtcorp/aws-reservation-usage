@@ -118,9 +118,9 @@ describe('EC2', function () {
     beforeEach(function () {
       this.instances = [
         {InstanceType: 'm9.37xlarge', Placement: {AvailabilityZone: 'eu-north-9b'}, Tags: []},
-        {InstanceType: 'p13.medium', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Name: 'Environment', Value: 'test'}]},
+        {InstanceType: 'p13.medium', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Key: 'Environment', Value: 'test'}]},
         {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, InstanceLifecycle: 'spot'},
-        {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Name: 'aws:elasticmapreduce:job-flow-id', Value: '1'}]},
+        {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Key: 'aws:elasticmapreduce:job-flow-id', Value: '1'}]},
         {InstanceType: 'i7.nano', Placement: {AvailabilityZone: 'eu-north-9g'}, Tags: []},
       ]
     })
