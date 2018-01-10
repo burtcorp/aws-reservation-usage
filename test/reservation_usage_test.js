@@ -81,7 +81,7 @@ describe('ReservationUsage', function () {
 
       describe('when no "region" parameter is specified', function () {
         beforeEach(function () {
-          delete this.event.queryStringParameters.region
+          delete this.event.queryStringParameters
         })
 
         it('loads instances and reservations for the region specified in the AWS_DEFAULT_REGION environment variable', function () {
