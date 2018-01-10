@@ -13,7 +13,7 @@ describe('EC2', function () {
       ctx.ec2Config = config
       return ctx.ec2Client
     }
-    this.ec2 = new EC2(ec2ClientFactory, {})
+    this.ec2 = new EC2(ec2ClientFactory, {}, {})
   })
 
   function ec2ClientSharedExamples() {
@@ -34,7 +34,9 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
+      this.calls = 0
       this.ec2Client.describeReservedInstances = (params) => {
+        this.calls++
         this.filters = params.Filters
         return {promise: () => Promise.resolve({ReservedInstances: this.reservedInstances})}
       }
@@ -112,6 +114,16 @@ describe('EC2', function () {
         expect(reservations[2].az).to.equal('eu-north-9d')
       })
     })
+
+    it('caches the result per region', function () {
+      return Promise.all([
+        this.ec2.loadReservations('eu-north-9'),
+        this.ec2.loadReservations('eu-north-7'),
+        this.ec2.loadReservations('eu-north-9'),
+      ]).then(() => {
+        expect(this.calls).to.equal(2)
+      })
+    })
   })
 
   describe('#loadInstances', function () {
@@ -126,7 +138,9 @@ describe('EC2', function () {
     })
 
     beforeEach(function () {
+      this.calls = 0
       this.ec2Client.describeInstances = (params) => {
+        this.calls++
         this.filters = params.Filters
         return {promise: () => Promise.resolve({Reservations: [
           {Instances: [this.instances[0], this.instances[1]]},
@@ -186,6 +200,16 @@ describe('EC2', function () {
       return this.result.then((instance) => {
         expect(instance[0].units).to.equal(32 * 8 + 5 * 8)
         expect(instance[2].units).to.equal(0.25)
+      })
+    })
+
+    it('caches the result per region', function () {
+      return Promise.all([
+        this.ec2.loadInstances('eu-north-9'),
+        this.ec2.loadInstances('eu-north-7'),
+        this.ec2.loadInstances('eu-north-9'),
+      ]).then(() => {
+        expect(this.calls).to.equal(2)
       })
     })
   })
