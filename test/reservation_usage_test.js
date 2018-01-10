@@ -52,6 +52,7 @@ describe('ReservationUsage', function () {
           requestContext: {},
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Slackbot 1.0',
           },
           body: 'hello=world&token=secret&foo=bar&text=eu-north-9'
         }
@@ -130,6 +131,13 @@ describe('ReservationUsage', function () {
               expect(response.statusCode).to.equal(200)
               expect(response.body).to.match(/running\s+reserved\s+unreserved\s+surplus/)
               expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
+            })
+          })
+
+          it('wraps the plain text in ``` to preserve formatting', function () {
+            return this.reservationUsage.processEvent(this.event).then((response) => {
+              expect(response.body).to.match(/^```\n/)
+              expect(response.body).to.match(/\n```\n$/)
             })
           })
         })
