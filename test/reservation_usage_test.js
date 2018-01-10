@@ -12,6 +12,7 @@ describe('ReservationUsage', function () {
   beforeEach(function () {
     this.env = {
       AWS_DEFAULT_REGION: 'eu-north-3',
+      VERIFICATION_TOKEN: 'secret',
     }
   })
 
@@ -49,11 +50,26 @@ describe('ReservationUsage', function () {
       beforeEach(function () {
         this.event = {
           requestContext: {},
+          headers: {},
           queryStringParameters: {
             region: 'eu-north-9',
           },
-          headers: {},
+          body: 'hello=world&token=secret&foo=bar'
         }
+      })
+
+      describe('and the request does not include the expected validation token', function () {
+        beforeEach(function () {
+          this.event.body = 'hello=world'
+        })
+
+        it('returns a 401 error response', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.statusCode).to.equal(401)
+            expect(response.body).to.match(/authentication/i)
+            expect(response.headers['Content-Type']).to.match(/^text\/plain/)
+          })
+        })
       })
 
       it('returns an API Gateway-compatible response', function () {
