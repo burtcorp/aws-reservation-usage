@@ -119,6 +119,20 @@ describe('ReservationUsage', function () {
             expect(response.headers['Content-Type']).to.equal('application/json')
           })
         })
+
+        describe('but the user agent indicates that the request comes from Slack', function () {
+          beforeEach(function () {
+            this.event.headers['User-Agent'] = 'Slackbot 1.0'
+          })
+
+          it('returns a plain text summary', function () {
+            return this.reservationUsage.processEvent(this.event).then((response) => {
+              expect(response.statusCode).to.equal(200)
+              expect(response.body).to.match(/running\s+reserved\s+unreserved\s+surplus/)
+              expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
+            })
+          })
+        })
       })
     })
 
