@@ -50,11 +50,10 @@ describe('ReservationUsage', function () {
       beforeEach(function () {
         this.event = {
           requestContext: {},
-          headers: {},
-          queryStringParameters: {
-            region: 'eu-north-9',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: 'hello=world&token=secret&foo=bar'
+          body: 'hello=world&token=secret&foo=bar&text=eu-north-9'
         }
       })
 
@@ -88,16 +87,16 @@ describe('ReservationUsage', function () {
         })
       })
 
-      it('loads instances and reservations for the region specified in the "region" parameter', function () {
+      it('loads instances and reservations for the specified region', function () {
         return this.reservationUsage.processEvent(this.event).then(() => {
           expect(this.ec2.requestedReservationRegion).to.equal('eu-north-9')
           expect(this.ec2.requestedInstancesRegion).to.equal('eu-north-9')
         })
       })
 
-      describe('when no "region" parameter is specified', function () {
+      describe('when the region is not specified', function () {
         beforeEach(function () {
-          delete this.event.queryStringParameters
+          this.event.body = 'hello=world&token=secret'
         })
 
         it('loads instances and reservations for the region specified in the AWS_DEFAULT_REGION environment variable', function () {
