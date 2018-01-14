@@ -19,6 +19,8 @@ describe('ReservationManager', function () {
       size: 'large',
       az: 'eu-north-9g',
       units: 4,
+      spot: false,
+      emr: false,
     }
   })
 
@@ -68,6 +70,20 @@ describe('ReservationManager', function () {
     })
 
     describe('when there are no reservations', function () {
+      it('returns null', function () {
+        expect(this.reservationManager.consumeReservedCapacity(this.instance)).to.be.null
+      })
+    })
+
+    describe('when the instances is a spot instance', function () {
+      beforeEach(function () {
+        this.reservations.push({family: 'i9', size: 'large', offeringClass: 'standard', az: 'eu-north-9g', units: 8})
+      })
+
+      beforeEach(function () {
+        this.instance.spot = true
+      })
+
       it('returns null', function () {
         expect(this.reservationManager.consumeReservedCapacity(this.instance)).to.be.null
       })

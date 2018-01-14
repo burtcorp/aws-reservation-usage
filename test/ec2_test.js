@@ -131,8 +131,8 @@ describe('EC2', function () {
       this.instances = [
         {InstanceType: 'm9.37xlarge', Placement: {AvailabilityZone: 'eu-north-9b'}, Tags: []},
         {InstanceType: 'p13.medium', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Key: 'Environment', Value: 'test'}]},
-        {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, InstanceLifecycle: 'spot'},
-        {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Key: 'aws:elasticmapreduce:job-flow-id', Value: '1'}]},
+        {InstanceType: 'x3.micro', Placement: {AvailabilityZone: 'eu-north-9d'}, InstanceLifecycle: 'spot', Tags: []},
+        {InstanceType: 'c17.large', Placement: {AvailabilityZone: 'eu-north-9d'}, Tags: [{Key: 'aws:elasticmapreduce:job-flow-id', Value: '1'}]},
         {InstanceType: 'i7.nano', Placement: {AvailabilityZone: 'eu-north-9g'}, Tags: []},
       ]
     })
@@ -164,19 +164,19 @@ describe('EC2', function () {
 
     it('returns a promise of a list of the instances returned by EC2', function () {
       return this.result.then((instances) => {
-        expect(instances.length).to.equal(3)
+        expect(instances.length).to.equal(5)
       })
     })
 
-    it('filters out spot instances', function () {
+    it('marks spot instances', function () {
       return this.result.then((instances) => {
-        expect(instances.map((i) => i.family)).to.not.include('x3')
+        expect(instances.map(i => i.spot)).to.deep.equal([false, false, true, false, false])
       })
     })
 
-    it('filters out EMR instances', function () {
+    it('marks instance used for EMR', function () {
       return this.result.then((instances) => {
-        expect(instances.map((i) => i.family)).to.not.include('c17')
+        expect(instances.map(i => i.emr)).to.deep.equal([false, false, false, true, false])
       })
     })
 
@@ -184,22 +184,22 @@ describe('EC2', function () {
       return this.result.then((instances) => {
         expect(instances[0].family).to.equal('m9')
         expect(instances[0].size).to.equal('37xlarge')
-        expect(instances[2].family).to.equal('i7')
-        expect(instances[2].size).to.equal('nano')
+        expect(instances[4].family).to.equal('i7')
+        expect(instances[4].size).to.equal('nano')
       })
     })
 
     it('extracts the AZ from the instances', function () {
       return this.result.then((instances) => {
         expect(instances[0].az).to.equal('eu-north-9b')
-        expect(instances[2].az).to.equal('eu-north-9g')
+        expect(instances[4].az).to.equal('eu-north-9g')
       })
     })
 
     it('calculates the normalized number of units', function () {
       return this.result.then((instance) => {
         expect(instance[0].units).to.equal(32 * 8 + 5 * 8)
-        expect(instance[2].units).to.equal(0.25)
+        expect(instance[4].units).to.equal(0.25)
       })
     })
 

@@ -37,9 +37,11 @@ describe('ReservationUsage', function () {
 
   describe('#processEvent', function () {
     beforeEach(function () {
-      this.ec2.instances.push({family: 'i9', size: 'large', units: 4})
-      this.ec2.instances.push({family: 'p7', size: 'large', units: 4})
-      this.ec2.instances.push({family: 'd5', size: 'large', units: 4})
+      this.ec2.instances.push({family: 'i9', size: 'large', units: 4, spot: false, emr: false})
+      this.ec2.instances.push({family: 'p7', size: 'large', units: 4, spot: false, emr: false})
+      this.ec2.instances.push({family: 'd5', size: 'large', units: 4, spot: false, emr: false})
+      this.ec2.instances.push({family: 'c6', size: 'large', units: 4, spot: true, emr: false})
+      this.ec2.instances.push({family: 'i9', size: 'large', units: 4, spot: false, emr: true})
       this.ec2.reservations.push({family: 'p7', size: 'small', offeringClass: 'convertible', units: 8})
       this.ec2.reservations.push({family: 'i9', size: 'small', offeringClass: 'convertible', units: 18})
       this.ec2.reservations.push({family: 'i9', size: 'small', offeringClass: 'convertible', units: 4})
@@ -83,7 +85,7 @@ describe('ReservationUsage', function () {
       it('returns a plain text summary', function () {
         return this.reservationUsage.processEvent(this.event).then((response) => {
           expect(response.statusCode).to.equal(200)
-          expect(response.body).to.match(/running\s+reserved\s+unreserved\s+surplus/)
+          expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
           expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
         })
       })
@@ -129,7 +131,7 @@ describe('ReservationUsage', function () {
           it('returns a plain text summary', function () {
             return this.reservationUsage.processEvent(this.event).then((response) => {
               expect(response.statusCode).to.equal(200)
-              expect(response.body).to.match(/running\s+reserved\s+unreserved\s+surplus/)
+              expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
               expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
             })
           })
@@ -149,6 +151,7 @@ describe('ReservationUsage', function () {
         it('contains the families of the instances and reservations, in alphabetical order', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
             expect(response.map(s => s.family)).to.deep.equal([
+              'c6',
               'd5',
               'i9',
               'p7',
@@ -156,9 +159,10 @@ describe('ReservationUsage', function () {
           })
         })
 
-        it('contains the the number of running units for each instance family', function () {
+        it('contains the the number of running on demand units for each instance family', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
-            expect(response.map(s => [s.family, s.running])).to.deep.equal([
+            expect(response.map(s => [s.family, s.onDemand])).to.deep.equal([
+              ['c6', 0],
               ['d5', 4],
               ['i9', 4],
               ['p7', 4],
@@ -166,9 +170,32 @@ describe('ReservationUsage', function () {
           })
         })
 
+        it('contains the the number of running spot units for each instance family', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.map(s => [s.family, s.spot])).to.deep.equal([
+              ['c6', 4],
+              ['d5', 0],
+              ['i9', 0],
+              ['p7', 0],
+            ])
+          })
+        })
+
+        it('contains the the number of running EMR units for each instance family', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.map(s => [s.family, s.emr])).to.deep.equal([
+              ['c6', 0],
+              ['d5', 0],
+              ['i9', 4],
+              ['p7', 0],
+            ])
+          })
+        })
+
         it('contains the the number of reserved units for each instance family', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
             expect(response.map(s => [s.family, s.reserved])).to.deep.equal([
+              ['c6', 0],
               ['d5', 0],
               ['i9', 18 + 4 + 2],
               ['p7', 8],
@@ -179,6 +206,7 @@ describe('ReservationUsage', function () {
         it('contains the the number of unreserved units for each instance family', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
             expect(response.map(s => [s.family, s.unreserved])).to.deep.equal([
+              ['c6', 0],
               ['d5', 4],
               ['i9', 0],
               ['p7', 0],
@@ -189,8 +217,9 @@ describe('ReservationUsage', function () {
         it('contains the the number of unused reserved units for each instance family', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
             expect(response.map(s => [s.family, s.surplus])).to.deep.equal([
+              ['c6', 0],
               ['d5', 0],
-              ['i9', 18 + 4 + 2 - 4],
+              ['i9', 18 + 4 + 2 - 4 - 4],
               ['p7', 8 - 4],
             ])
           })
