@@ -69,7 +69,7 @@ describe('ReservationUsage', function () {
         })
 
         it('returns a 401 error response', function () {
-          return this.reservationUsage.processEvent(this.event).then((response) => {
+          return this.response.then((response) => {
             expect(response.statusCode).to.equal(401)
             expect(response.body).to.match(/authentication/i)
             expect(response.headers['Content-Type']).to.match(/^text\/plain/)
@@ -78,7 +78,7 @@ describe('ReservationUsage', function () {
       })
 
       it('returns an API Gateway-compatible response', function () {
-        return this.reservationUsage.processEvent(this.event).then((response) => {
+        return this.response.then((response) => {
           expect(response.statusCode).to.equal(200)
           expect(response.headers).to.not.be.undefined
           expect(response.body).to.not.be.undefined
@@ -86,7 +86,7 @@ describe('ReservationUsage', function () {
       })
 
       it('returns a summary as JSON', function () {
-        return this.reservationUsage.processEvent(this.event).then((response) => {
+        return this.response.then((response) => {
           expect(response.statusCode).to.equal(200)
           expect(response.headers['Content-Type']).to.equal('application/json')
           const body = JSON.parse(response.body)
@@ -95,7 +95,7 @@ describe('ReservationUsage', function () {
       })
 
       it('loads instances and reservations for the specified region', function () {
-        return this.reservationUsage.processEvent(this.event).then(() => {
+        return this.response.then(() => {
           expect(this.ec2.requestedReservationRegion).to.equal('eu-north-9')
           expect(this.ec2.requestedInstancesRegion).to.equal('eu-north-9')
         })
@@ -107,7 +107,7 @@ describe('ReservationUsage', function () {
         })
 
         it('loads instances and reservations for the region specified in the AWS_DEFAULT_REGION environment variable', function () {
-          return this.reservationUsage.processEvent(this.event).then(() => {
+          return this.response.then(() => {
             expect(this.ec2.requestedReservationRegion).to.equal('eu-north-3')
             expect(this.ec2.requestedInstancesRegion).to.equal('eu-north-3')
           })
@@ -120,7 +120,7 @@ describe('ReservationUsage', function () {
         })
 
         it('returns a plain text summary', function () {
-          return this.reservationUsage.processEvent(this.event).then((response) => {
+          return this.response.then((response) => {
             expect(response.statusCode).to.equal(200)
             expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
             expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
@@ -180,7 +180,7 @@ describe('ReservationUsage', function () {
 
     describe('when the event any non-API Gateway-event', function () {
       it('returns a summary as an object', function () {
-        return this.reservationUsage.processEvent(this.event).then((response) => {
+        return this.response.then((response) => {
           expect(response.map(s => [s.family, s.onDemand, s.reserved])).to.deep.equal([
             ['c6', 0, 0],
             ['d5', 4, 0],
