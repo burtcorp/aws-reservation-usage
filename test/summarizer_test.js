@@ -41,11 +41,11 @@ describe('Summarizer', function () {
         ])
       })
 
-      it('contains the the number of running on demand units for each instance family', function () {
-        expect(this.summary.map(s => [s.family, s.onDemand])).to.deep.equal([
-          ['c6', 0],
+      it('contains the the total number of running units for each instance family', function () {
+        expect(this.summary.map(s => [s.family, s.running])).to.deep.equal([
+          ['c6', 4],
           ['d5', 4],
-          ['i9', 4],
+          ['i9', 4 + 4],
           ['p7', 4],
         ])
       })
@@ -77,8 +77,8 @@ describe('Summarizer', function () {
         ])
       })
 
-      it('contains the the number of unreserved units for each instance family', function () {
-        expect(this.summary.map(s => [s.family, s.unreserved])).to.deep.equal([
+      it('contains the the number of on demand instances not matching any reservations', function () {
+        expect(this.summary.map(s => [s.family, s.reservable])).to.deep.equal([
           ['c6', 0],
           ['d5', 4],
           ['i9', 0],

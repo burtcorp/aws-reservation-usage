@@ -123,7 +123,7 @@ describe('ReservationUsage', function () {
           return this.response.then((response) => {
             expect(response.statusCode).to.equal(200)
             expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
-            expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
+            expect(response.body).to.match(/running\s+spot\s+emr\s+reserved\s+reservable\s+surplus/)
           })
         })
       })
@@ -170,7 +170,7 @@ describe('ReservationUsage', function () {
           it('contains a plain text table', function () {
             return this.body.then((body) => {
               expect(body.text).to.match(/```[\s\S]+```/m)
-              expect(body.text).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
+              expect(body.text).to.match(/running\s+spot\s+emr\s+reserved\s+reservable\s+surplus/)
               expect(body.text).to.match(/i9(?:\s+\d+){6}/)
             })
           })
@@ -181,11 +181,11 @@ describe('ReservationUsage', function () {
     describe('when the event any non-API Gateway-event', function () {
       it('returns a summary as an object', function () {
         return this.response.then((response) => {
-          expect(response.map(s => [s.family, s.onDemand, s.reserved])).to.deep.equal([
-            ['c6', 0, 0],
-            ['d5', 4, 0],
-            ['i9', 4, 18 + 4 + 2],
-            ['p7', 4, 8],
+          expect(response.map(s => [s.family, s.running, s.reserved])).to.deep.equal([
+            ['c6', 0 + 4 + 0, 0],
+            ['d5', 4 + 0 + 0, 0],
+            ['i9', 4 + 0 + 4, 18 + 4 + 2],
+            ['p7', 4 + 0 + 0, 8],
           ])
         })
       })
