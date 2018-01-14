@@ -9,6 +9,10 @@ describe('ReservationUsage', function () {
     return new ReservationUsage(this.env, this.ec2)
   })
 
+  def('response', function () {
+    return this.reservationUsage.processEvent(this.event)
+  })
+
   beforeEach(function () {
     this.env = {
       AWS_DEFAULT_REGION: 'eu-north-3',
@@ -132,33 +136,43 @@ describe('ReservationUsage', function () {
           }
         })
 
-        it('returns Slack message structure in the API Gateway response body', function () {
-          return this.reservationUsage.processEvent(this.event).then((response) => {
+        it('returns an API Gateway response with an embedded Slack message structure', function () {
+          return this.response.then((response) => {
             expect(response.statusCode).to.equal(200)
             expect(response.headers['Content-Type']).to.equal('application/json')
-            const body = JSON.parse(response.body)
-            expect(body.response_type).to.equal('in_channel')
-            expect(body.mrkdwn).to.equal(true)
+            expect(response.body).to.match(/^\{.+\}$/m)
           })
         })
 
-        it('formats the Slack body as a plain text table', function () {
-          return this.reservationUsage.processEvent(this.event).then((response) => {
-            expect(response.statusCode).to.equal(200)
-            expect(response.headers['Content-Type']).to.equal('application/json')
-            const body = JSON.parse(response.body)
-            expect(body.response_type).to.equal('in_channel')
-            expect(body.mrkdwn).to.equal(true)
-            expect(body.text).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
-            expect(body.text).to.match(/i9(?:\s+\d+){6}/)
+        describe('returns a Slack message structure that', function () {
+          def('body', function () {
+            return this.response.then(r => JSON.parse(r.body))
           })
-        })
 
-        it('wraps the plain text in ``` to preserve formatting', function () {
-          return this.reservationUsage.processEvent(this.event).then((response) => {
-            const body = JSON.parse(response.body)
-            expect(body.text).to.match(/^```\n/)
-            expect(body.text).to.match(/\n```\n$/)
+          it('sets the message to be non-ephemeral', function () {
+            return this.body.then((body) => {
+              expect(body.response_type).to.equal('in_channel')
+            })
+          })
+
+          it('sets the message to be Markdown formatted', function () {
+            return this.body.then((body) => {
+              expect(body.mrkdwn).to.equal(true)
+            })
+          })
+
+          it('includes a brief explanation', function () {
+            return this.body.then((body) => {
+              expect(body.text).to.match(/The number of small-equivalents currently running and reserved in eu-north-9/)
+            })
+          })
+
+          it('contains a plain text table', function () {
+            return this.body.then((body) => {
+              expect(body.text).to.match(/```[\s\S]+```/m)
+              expect(body.text).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
+              expect(body.text).to.match(/i9(?:\s+\d+){6}/)
+            })
           })
         })
       })
