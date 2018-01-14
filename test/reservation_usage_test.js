@@ -54,7 +54,6 @@ describe('ReservationUsage', function () {
           requestContext: {},
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Slackbot 1.0',
           },
           body: 'hello=world&token=secret&foo=bar&text=eu-north-9'
         }
@@ -77,16 +76,17 @@ describe('ReservationUsage', function () {
       it('returns an API Gateway-compatible response', function () {
         return this.reservationUsage.processEvent(this.event).then((response) => {
           expect(response.statusCode).to.equal(200)
-          expect(response.body).to.not.be.undefined
           expect(response.headers).to.not.be.undefined
+          expect(response.body).to.not.be.undefined
         })
       })
 
-      it('returns a plain text summary', function () {
+      it('returns a summary as JSON', function () {
         return this.reservationUsage.processEvent(this.event).then((response) => {
           expect(response.statusCode).to.equal(200)
-          expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
-          expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
+          expect(response.headers['Content-Type']).to.equal('application/json')
+          const body = JSON.parse(response.body)
+          expect(body).to.have.nested.property('[0].family')
         })
       })
 
@@ -110,37 +110,55 @@ describe('ReservationUsage', function () {
         })
       })
 
-      describe('whent he "Accept" header contains "application/json"', function () {
+      describe('when the "Accept" header is "text/plain"', function () {
         beforeEach(function () {
-          this.event.headers = {Accept: 'text/plain, application/json, */*'}
+          this.event.headers = {Accept: 'text/plain'}
         })
 
-        it('returns a JSON string as the body and sets the content type to JSON', function () {
+        it('returns a plain text summary', function () {
           return this.reservationUsage.processEvent(this.event).then((response) => {
             expect(response.statusCode).to.equal(200)
-            expect(response.body).to.match(/^\[\{"family/)
+            expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
+            expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
+          })
+        })
+      })
+
+      describe('when the user agent indicates that the request comes from Slack', function () {
+        beforeEach(function () {
+          this.event.headers = {
+            'Accept': 'text/plain, application/json, */*',
+            'User-Agent': 'Slackbot 1.0',
+          }
+        })
+
+        it('returns Slack message structure in the API Gateway response body', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.statusCode).to.equal(200)
             expect(response.headers['Content-Type']).to.equal('application/json')
+            const body = JSON.parse(response.body)
+            expect(body.response_type).to.equal('in_channel')
+            expect(body.mrkdwn).to.equal(true)
           })
         })
 
-        describe('but the user agent indicates that the request comes from Slack', function () {
-          beforeEach(function () {
-            this.event.headers['User-Agent'] = 'Slackbot 1.0'
+        it('formats the Slack body as a plain text table', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            expect(response.statusCode).to.equal(200)
+            expect(response.headers['Content-Type']).to.equal('application/json')
+            const body = JSON.parse(response.body)
+            expect(body.response_type).to.equal('in_channel')
+            expect(body.mrkdwn).to.equal(true)
+            expect(body.text).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
+            expect(body.text).to.match(/i9(?:\s+\d+){6}/)
           })
+        })
 
-          it('returns a plain text summary', function () {
-            return this.reservationUsage.processEvent(this.event).then((response) => {
-              expect(response.statusCode).to.equal(200)
-              expect(response.body).to.match(/on demand\s+spot\s+emr\s+reserved\s+unreserved\s+surplus/)
-              expect(response.headers['Content-Type']).to.equal('text/plain; charset=UTF-8')
-            })
-          })
-
-          it('wraps the plain text in ``` to preserve formatting', function () {
-            return this.reservationUsage.processEvent(this.event).then((response) => {
-              expect(response.body).to.match(/^```\n/)
-              expect(response.body).to.match(/\n```\n$/)
-            })
+        it('wraps the plain text in ``` to preserve formatting', function () {
+          return this.reservationUsage.processEvent(this.event).then((response) => {
+            const body = JSON.parse(response.body)
+            expect(body.text).to.match(/^```\n/)
+            expect(body.text).to.match(/\n```\n$/)
           })
         })
       })
