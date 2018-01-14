@@ -8,12 +8,16 @@ describe('EC2', function () {
   })
 
   beforeEach(function () {
+    this.clock = {now: 0}
+  })
+
+  beforeEach(function () {
     const ctx = this
     const ec2ClientFactory = function (config) {
       ctx.ec2Config = config
       return ctx.ec2Client
     }
-    this.ec2 = new EC2(ec2ClientFactory, {}, {})
+    this.ec2 = new EC2(ec2ClientFactory, {}, {}, this.clock)
   })
 
   function ec2ClientSharedExamples() {
@@ -124,6 +128,24 @@ describe('EC2', function () {
         expect(this.calls).to.equal(2)
       })
     })
+
+    it('caches the result for an hour', function () {
+      return Promise.all([
+        this.ec2.loadReservations('eu-north-9'),
+        this.ec2.loadReservations('eu-north-9'),
+        this.ec2.loadReservations('eu-north-9'),
+      ]).then(() => {
+        this.clock.now += 3600000/2
+      }).then(() => {
+        return this.ec2.loadReservations('eu-north-9')
+      }).then(() => {
+        this.clock.now += 3600000/2
+      }).then(() => {
+        return this.ec2.loadReservations('eu-north-9')
+      }).then(() => {
+        expect(this.calls).to.equal(2)
+      })
+    })
   })
 
   describe('#loadInstances', function () {
@@ -209,6 +231,24 @@ describe('EC2', function () {
         this.ec2.loadInstances('eu-north-7'),
         this.ec2.loadInstances('eu-north-9'),
       ]).then(() => {
+        expect(this.calls).to.equal(2)
+      })
+    })
+
+    it('caches the result for five minutes', function () {
+      return Promise.all([
+        this.ec2.loadInstances('eu-north-9'),
+        this.ec2.loadInstances('eu-north-9'),
+        this.ec2.loadInstances('eu-north-9'),
+      ]).then(() => {
+        this.clock.now += 300000/2
+      }).then(() => {
+        return this.ec2.loadInstances('eu-north-9')
+      }).then(() => {
+        this.clock.now += 300000/2
+      }).then(() => {
+        return this.ec2.loadInstances('eu-north-9')
+      }).then(() => {
         expect(this.calls).to.equal(2)
       })
     })
