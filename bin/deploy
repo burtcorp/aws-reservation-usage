@@ -32,4 +32,6 @@ rm -rf "$work_dir"
 
 aws lambda update-function-code \
   --function-name "$function_name" \
-  --zip-file "fileb://$archive_path"
+  --zip-file "fileb://$archive_path" \
+  --query FunctionArn \
+  --output text
