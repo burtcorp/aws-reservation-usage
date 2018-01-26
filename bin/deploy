@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function_name="$1"
+
+if [[ -z $function_name ]]; then
+  echo 'Usage: deploy FUNCTION_NAME' 2>&1
+  exit 1
+fi
+
+base_dir=$(realpath "$(dirname "$0")/..")
+archive_path=$(realpath "$base_dir/tmp/reservation-usage.zip")
+work_dir=${archive_path%.zip}
+
+set -e
+
+mkdir -p "$(dirname "$archive_path")"
+rm -rf "$work_dir" "$archive_path"
+
+cd "$base_dir"
+npm run lint
+npm run test
+tarball_path="$(pwd)/$(npm pack)"
+
+mkdir -p "$work_dir"
+tar x -C "$work_dir" --strip-components=1 -f "$tarball_path"
+rm "$tarball_path"
+
+cd "$work_dir"
+zip -Xqr "$archive_path" .
+cd "$base_dir"
+rm -rf "$work_dir"
+
+aws lambda update-function-code \
+  --function-name "$function_name" \
+  --zip-file "fileb://$archive_path"
